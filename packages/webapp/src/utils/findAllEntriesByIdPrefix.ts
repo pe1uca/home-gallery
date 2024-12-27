@@ -18,6 +18,7 @@ export const findAllEntriesByIdPrefix = (entries: Entry[], idPrefix: string) => 
   }
 
   let pos = entries[low].id.startsWith(idPrefix) ? low : high
+  pos = Math.min(pos, entries.length - 1);
   if (!entries[pos].id.startsWith(idPrefix)) {
     return []
   }
