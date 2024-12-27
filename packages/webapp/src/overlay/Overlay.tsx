@@ -8,6 +8,7 @@ import { getHigherPreviewUrl } from '../utils/preview';
 import { SingleLayout } from "./SingleLayout";
 import { DoubleVLayout } from "./DoubleVLayout";
 import { runQueryOnEntries } from "../init/useSearchFilter";
+import { QuadGridLayout } from "./QuadGridLayout";
 
 const SlideShow = ({closeCb}) => {
 	const divRef = useRef<HTMLDivElement>(null);
@@ -35,6 +36,8 @@ const SlideShow = ({closeCb}) => {
 				return <SingleLayout.component entries={entries} />;
 			case DoubleVLayout.name:
 				return <DoubleVLayout.component entries={entries} />;
+			case QuadGridLayout.name:
+				return <QuadGridLayout.component entries={entries} />;
 		
 			default:
 				break;
@@ -45,6 +48,7 @@ const SlideShow = ({closeCb}) => {
 		const layouts = [
 			SingleLayout,
 			DoubleVLayout,
+			QuadGridLayout,
 		];
 
 		const history = layoutHistory.current;
