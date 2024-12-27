@@ -9,8 +9,8 @@ export const QuadGridLayoutComponent = ((props) => {
 
 	return (
 		<>
-		<div className="w-screen h-screen columns-2">
-			<div className="flex h-1/2">
+		<div className="w-screen h-screen flex flex-wrap">
+			<div className="flex w-full h-1/2">
 				<div className="flex-1">
 				<img className="relative object-contain h-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" src={props.entries[0]} />
 				</div>
@@ -19,7 +19,7 @@ export const QuadGridLayoutComponent = ((props) => {
 				</div>
 			</div>
 
-			<div className="flex h-1/2">
+			<div className="flex w-full h-1/2">
 				<div className="flex-1">
 				<img className="relative object-contain h-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" src={props.entries[2]} />
 				</div>
