@@ -1,6 +1,7 @@
 import * as React from "react";
+import { calculateBestRatioFilter, Layout } from "./Layout";
 
-export const SingleLayout = ((props) => {
+export const SingleLayoutComponent = ((props) => {
 
 	if (!props.entries) {
 		return <></>;
@@ -12,3 +13,11 @@ export const SingleLayout = ((props) => {
 		</>
 	)
 })
+
+export const SingleLayout: Layout = {
+	name: 'SingleLayout',
+	entriesCount: 1,
+	metadata: {name: 'SingleLayout', entriesCount: 1},
+	filter: calculateBestRatioFilter(window.innerWidth, window.innerHeight),
+	component: SingleLayoutComponent
+}

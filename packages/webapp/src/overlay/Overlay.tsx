@@ -7,12 +7,12 @@ import { usePreviewSize } from "../single/usePreviewSize";
 import { getHigherPreviewUrl } from '../utils/preview';
 import { SingleLayout } from "./SingleLayout";
 import { DoubleVLayout } from "./DoubleVLayout";
+import { runQueryOnEntries } from "../init/useSearchFilter";
 
 const SlideShow = ({closeCb}) => {
 	const divRef = useRef<HTMLDivElement>(null);
-	const entries = useEntryStore(state => state.entries);
+	const entriesPool = useEntryStore(state => state.entries);
 	const slideTimeout = 60 * 1000; // TODO: move to a configuration
-	const getRandomIdx = () => Math.floor(Math.random() * entries.length);
 	const previewSize = usePreviewSize();
 	const layoutHistory = useRef<any[]>([]);
 	const [currentLayout, setCurrentLayout] = useState<any>(null);
@@ -20,28 +20,27 @@ const SlideShow = ({closeCb}) => {
 	const [isFading, setIsFading] = useState(false);
 	const [nextIdx, setNextIdx] = useState(0);
 
-	const selectNewEntry = () => {
-		const entry = entries[getRandomIdx()];
+	const selectNewEntry = (entries: any[]) => {
+		const entry = entries[Math.floor(Math.random() * entries.length)];
 		return getHigherPreviewUrl(entry.previews, previewSize);
 	}
 
 	const getLayoutComponent = (name: string, entries: any[]) => {
 		switch (name) {
-			case 'SingleLayout':
-				return <SingleLayout entries={entries} />;
-			case 'DoubleVLayout':
-				return <DoubleVLayout entries={entries} />;
+			case SingleLayout.name:
+				return <SingleLayout.component entries={entries} />;
+			case DoubleVLayout.name:
+				return <DoubleVLayout.component entries={entries} />;
 		
 			default:
 				break;
 		}
 	}
 
-	const selectNewLayout = (idx: number) => {
-		// TODO: Move to the each *Layout.tsx file to have the data in one place
+	const selectNewLayout = async (idx: number) => {
 		const layouts = [
-			{name: 'SingleLayout', entriesCount: 1},
-			{name: 'DoubleVLayout', entriesCount: 2},
+			SingleLayout,
+			DoubleVLayout,
 		];
 
 		const history = layoutHistory.current;
@@ -52,26 +51,35 @@ const SlideShow = ({closeCb}) => {
 			return Math.min(idx + 1, layoutHistory.current.length);
 		}
 
-		const {name: newLayoutName, entriesCount} = layouts[Math.floor(Math.random() * layouts.length)];
+		const nextLayout = layouts[Math.floor(Math.random() * layouts.length)];
 		const newLayoutData: any = {
-			component: newLayoutName,
+			component: nextLayout.name,
 			entries: []
 		};
 
-		for (let index = 0; index < entriesCount; index++) {
-			newLayoutData.entries.push(selectNewEntry());
+		// TODO: Allow other types of media? (would need to change the layouts to process them)
+		const filter = `type:image and ${nextLayout.filter}`;
+		// TODO: cache response? Probably it will only change based on screen size
+		const entriesFiltered = await runQueryOnEntries(entriesPool, filter);
+
+		for (let index = 0; index < nextLayout.entriesCount; index++) {
+			newLayoutData.entries.push(selectNewEntry(entriesFiltered || entriesPool));
 		}
-		const newLayoutComponent = getLayoutComponent(newLayoutName, newLayoutData.entries);
+		const newLayoutComponent = getLayoutComponent(nextLayout.name, newLayoutData.entries);
 
 		layoutHistory.current.push(newLayoutData);
 		setNextLayout(newLayoutComponent);
 		return layoutHistory.current.length;
 	}
 
-	const transitionEnd = () => {
+	const nextSlide = async () => {
+		setNextIdx(await selectNewLayout(nextIdx));
+	}
+
+	const transitionEnd = async () => {
 		setCurrentLayout(nextLayout);
 		setIsFading(false);
-		setNextIdx(selectNewLayout(nextIdx));
+		nextSlide();
 	}
 
 	const createTimeout = () => {
@@ -101,7 +109,7 @@ const SlideShow = ({closeCb}) => {
 	}, [divRef.current]);
 
 	useEffect(() => {
-		setNextIdx(selectNewLayout(nextIdx));
+		nextSlide();
 		setIsFading(true);
 	}, []);
 
@@ -115,25 +123,24 @@ const SlideShow = ({closeCb}) => {
 		};
 	}, [isFading]);
 
-	const divKeyUp = (event) => {
+	const divKeyUp = async (event) => {
 		switch (event.key) {
 			case 'Escape':
 				closeCb();
 				break;
 			case 'ArrowLeft':
-				setNextIdx(selectNewLayout(Math.max(nextIdx - 3, 0)));
+				setNextIdx(await selectNewLayout(Math.max(nextIdx - 3, 0)));
 				setIsFading(true);
 				break;
 			case ' ':
 			case 'ArrowRight':
-				setNextIdx(selectNewLayout(Math.min(nextIdx - 1, layoutHistory.current.length)));
+				setNextIdx(await selectNewLayout(Math.min(nextIdx - 1, layoutHistory.current.length)));
 				setIsFading(true);
 				break;
 		
 			default:
 				break;
 		}
-		
 	}
 
 	return (

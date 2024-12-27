@@ -1,6 +1,7 @@
 import * as React from "react";
+import { calculateBestRatioFilter, Layout } from "./Layout";
 
-export const DoubleVLayout = ((props) => {
+export const DoubleVLayoutComponent = ((props) => {
 
 	if (!props.entries) {
 		return <></>;
@@ -19,3 +20,11 @@ export const DoubleVLayout = ((props) => {
 		</>
 	)
 })
+
+export const DoubleVLayout: Layout = {
+	name: 'DoubleVLayout',
+	entriesCount: 2,
+	metadata: {name: 'DoubleVLayout', entriesCount: 2},
+	filter: calculateBestRatioFilter(window.innerWidth/2, window.innerHeight),
+	component: DoubleVLayoutComponent
+}
