@@ -80,7 +80,7 @@ const SlideShow = ({closeCb}) => {
 			query = {type:'similar', value:pivotEntry.shortId};
 			entriesFiltered = await getEntriesFiltered(entriesFiltered, query);
 			// Narrow it even further to just the top similar ones
-			const frontEntries = entriesFiltered.slice(0, Math.ceil(entriesFiltered * 0.1));
+			const frontEntries = entriesFiltered.slice(0, Math.ceil(entriesFiltered.length * 0.1));
 			entriesFiltered = frontEntries.length <= nextLayout.entriesCount ? entriesFiltered : frontEntries;
 			for (let index = 1; index < nextLayout.entriesCount; index++) {
 				const entry = selectRandomEntry(entriesFiltered);
