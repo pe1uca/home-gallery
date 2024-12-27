@@ -20,9 +20,13 @@ const SlideShow = ({closeCb}) => {
 	const [isFading, setIsFading] = useState(false);
 	const [nextIdx, setNextIdx] = useState(0);
 
-	const selectNewEntry = (entries: any[]) => {
-		const entry = entries[Math.floor(Math.random() * entries.length)];
-		return getHigherPreviewUrl(entry.previews, previewSize);
+	const selectRandomEntry = (entries: any[]) => {
+		return entries[Math.floor(Math.random() * entries.length)];
+	}
+	const getEntriesFiltered = async (entries, query) => {
+		const entriesFiltered = await runQueryOnEntries(entries, query);
+
+		return entriesFiltered.length <= 0 ? entries : entriesFiltered;
 	}
 
 	const getLayoutComponent = (name: string, entries: any[]) => {
@@ -60,11 +64,26 @@ const SlideShow = ({closeCb}) => {
 		// TODO: Allow other types of media? (would need to change the layouts to process them)
 		const filter = `type:image and ${nextLayout.filter}`;
 		// TODO: cache response? Probably it will only change based on screen size
-		const entriesFiltered = await runQueryOnEntries(entriesPool, filter);
-
-		for (let index = 0; index < nextLayout.entriesCount; index++) {
-			newLayoutData.entries.push(selectNewEntry(entriesFiltered || entriesPool));
+		let query: any = {type:'query', query:filter};
+		let entriesFiltered = await getEntriesFiltered(entriesPool, query);
+		
+		// First entry is selected at random
+		const pivotEntry = selectRandomEntry(entriesFiltered);
+		newLayoutData.entries.push(getHigherPreviewUrl(pivotEntry.previews, previewSize));
+		// Check if layout needs more entries
+		if (nextLayout.entriesCount > 1) {
+			// Next entries will be selected based on similarity
+			query = {type:'similar', value:pivotEntry.shortId};
+			entriesFiltered = await getEntriesFiltered(entriesFiltered, query);
+			// Narrow it even further to just the top similar ones
+			const frontEntries = entriesFiltered.slice(0, Math.ceil(entriesFiltered * 0.1));
+			entriesFiltered = frontEntries.length <= nextLayout.entriesCount ? entriesFiltered : frontEntries;
+			for (let index = 1; index < nextLayout.entriesCount; index++) {
+				const entry = selectRandomEntry(entriesFiltered);
+				newLayoutData.entries.push(getHigherPreviewUrl(entry.previews, previewSize));
+			}
 		}
+
 		const newLayoutComponent = getLayoutComponent(nextLayout.name, newLayoutData.entries);
 
 		layoutHistory.current.push(newLayoutData);

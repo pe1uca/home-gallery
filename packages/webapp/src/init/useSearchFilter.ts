@@ -26,12 +26,8 @@ export const useSearchFilter = () => {
 
 }
 
-export const runQueryOnEntries = async (entries, search) => {
+export const runQueryOnEntries = async (entries, query) => {
   const dbApi = createDatabaseApi(entries);
-  const query = {
-    type: 'query',
-    value: search
-  }
 
   return run(dbApi, query, pluginManager, pluginManager.createLogger('InternalSearchFilter'));
 }
@@ -42,7 +38,7 @@ const run = async (databaseApi, query, manager, log) => {
   let term = ''
   switch (query.type) {
     case 'none': term = ''; break
-    case 'query': term = query.value || ''; ; break
+    case 'query': term = query.value || query.query || ''; ; break
     case 'year': term = query.query || ''; queryContext.plugin.year = { value: query.value }; break
     case 'similar': term = query.query || ''; queryContext.plugin.similar = { seedId: query.value }; break
     case 'faces': term = query.query || ''; queryContext.plugin.face = { id: `${query.value.id}.${query.value.faceIndex}` }; break
