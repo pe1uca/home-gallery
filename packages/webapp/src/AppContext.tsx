@@ -19,22 +19,22 @@ type TAppLoadingState = {
 }
 
 const AppContext = createContext<TAppContext>({} as TAppContext)
+const context: TGalleryContext = {
+  type: 'browserContext',
+  plugin: {
+
+  }
+}
+const log = Logger('AppContext')
+export const pluginManager = new BrowserPluginManager(useAppConfig() as TGalleryConfig, context)
+
 
 export const AppContextProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
   const [state, setState] = useState<TAppLoadingState>({isLoading: true, hasError: false, appContext: {} as TAppContext})
   const config = useAppConfig()
 
   useEffect(() => {
-    const context: TGalleryContext = {
-      type: 'browserContext',
-      plugin: {
-
-      }
-    }
-
     const loadManager = async () => {
-      const log = Logger('AppContext')
-      const pluginManager = new BrowserPluginManager(config as TGalleryConfig, context)
       await pluginManager.addPlugin(DefaultQueryPlugin)
       await pluginManager.addPlugin(SimilarQueryPlugin)
       await pluginManager.addPlugin(FaceQueryPlugin)

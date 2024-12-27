@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLogger, usePluginManager } from '../AppContext'
+import { pluginManager, useLogger, usePluginManager } from '../AppContext'
 import { useEntryStore } from '../store/entry-store'
 import { TQueryContext } from '@home-gallery/types'
 import { stringifyEntry } from '@home-gallery/query'
@@ -24,6 +24,16 @@ export const useSearchFilter = () => {
       .then(entries => setEntries(entries))
   }, [allEntries, query])
 
+}
+
+export const runQueryOnEntries = async (entries, search) => {
+  const dbApi = createDatabaseApi(entries);
+  const query = {
+    type: 'query',
+    value: search
+  }
+
+  return run(dbApi, query, pluginManager, pluginManager.createLogger('InternalSearchFilter'));
 }
 
 const run = async (databaseApi, query, manager, log) => {
