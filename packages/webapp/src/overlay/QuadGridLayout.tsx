@@ -9,7 +9,7 @@ export const QuadGridLayoutComponent = ((props) => {
 
 	return (
 		<>
-		<div className="w-screen h-screen columns-3">
+		<div className="w-screen h-screen columns-2">
 			<div className="flex h-1/2">
 				<div className="flex-1">
 				<img className="relative object-contain h-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" src={props.entries[0]} />
